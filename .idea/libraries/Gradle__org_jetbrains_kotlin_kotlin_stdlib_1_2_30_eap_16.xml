@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.2.30-eap-16">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.2.30-eap-16/4f274f01e673e939516297f85b9302af7612b1da/kotlin-stdlib-1.2.30-eap-16.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.2.30-eap-16/fd6aa69d69d635dd133bcedf31cdd0f3d0a4a3a7/kotlin-stdlib-1.2.30-eap-16-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
