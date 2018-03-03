@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.2.30-eap-16'
+    ext.kotlin_version = '1.2.30'
 
     repositories {
         maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap' }
@@ -24,6 +24,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "com.google.code.gson:gson:2.8.1"
     compile 'org.litote.kmongo:kmongo:3.6.1'
+    compile 'javax.mail:mail:1.4.7'
 }
 
 compileKotlin {

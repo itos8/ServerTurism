@@ -4,6 +4,8 @@ import com.google.gson.*
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
+import javax.mail.internet.AddressException
+import javax.mail.internet.InternetAddress
 
 //Converte una stringa in JSON
 fun parseStringToJSON (str: String) : JsonObject
@@ -25,6 +27,16 @@ fun UserFromJSON (obj : JsonObject): User
     return user
 }
 
+//Converte un JSON a un oggetto di tipo Login
+fun LoginFromJSON (obj : JsonObject): Login
+{
+    val gs = Gson()
+
+    val login = gs.fromJson(obj, Login::class.java)
+
+    return login
+}
+
 //Invio della risposta alla richiesta di registrazione
 fun sendResponseReg(res : String, addr: InetAddress)
 {
@@ -42,8 +54,26 @@ fun sendResponseReg(res : String, addr: InetAddress)
 //Funzione di registrazione di un nuovo utente
 fun register(user: User, addr: InetAddress)
 {
+    try {
+        val mail = InternetAddress(user.mail)
+        mail.validate()
+    }
+    catch (ae: AddressException) {
+        sendResponseReg("No", addr)
+        return
+    }
     println(addr.hostAddress)
     if (MongoReg(user))
+        sendResponseReg("Yes", addr)
+    else
+        sendResponseReg("No", addr)
+}
+
+//Funzione di login
+fun login(login: Login, addr: InetAddress)
+{
+    println(addr.hostAddress)
+    if (MongoLog(login))
         sendResponseReg("Yes", addr)
     else
         sendResponseReg("No", addr)
@@ -57,5 +87,6 @@ fun receive (obj : String, addr: InetAddress)
     when
     {
         jsonobj.has("register") -> register(UserFromJSON(jsonobj.getAsJsonObject("register")), addr)
+        jsonobj.has("login") -> login(LoginFromJSON(jsonobj.getAsJsonObject("login")), addr)
     }
 }

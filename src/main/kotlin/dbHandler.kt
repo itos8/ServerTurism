@@ -1,7 +1,5 @@
 package server
 
-import com.google.gson.Gson
-import com.mongodb.client.FindIterable
 import org.litote.kmongo.*
 
 val mon = KMongo.createClient("localhost",27017)
@@ -21,6 +19,24 @@ fun MongoReg(user: User): Boolean
             return true
         }
     } catch (iae: IllegalArgumentException){
+        return false
+    }
+}
+
+//Login di un utente registrato
+fun MongoLog(login: Login) : Boolean
+{
+    try {
+        val log = col.findOneById(login.mail)
+        if ( log != null )
+        {
+            return log.pass == login.pass
+        }
+        else
+            return false
+    }
+    catch (iae: IllegalArgumentException)
+    {
         return false
     }
 }
