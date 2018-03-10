@@ -8,27 +8,36 @@ import javax.mail.internet.AddressException
 import javax.mail.internet.InternetAddress
 
 //Converte una stringa in JSON
-fun parseStringToJSON (str: String) : JsonObject
+private fun parseStringToJSON (str: String) : JsonObject
 {
     val gson = Gson()
     val element = gson.fromJson(str, JsonElement::class.java)
-    val jsonObj = element.asJsonObject
 
-    return jsonObj
+    return element.asJsonObject
+}
+
+private fun parseListToJSON (list: List<Any>): JsonElement
+{
+    var element = JsonArray()
+
+    for (entry in list)
+    {
+        element.add(parseStringToJSON(entry.toString()))
+    }
+
+    return element
 }
 
 //Converte un JSON nella classe user
-fun UserFromJSON (obj : JsonObject): User
+private fun userFromJSON (obj : JsonObject): User
 {
     val gs = Gson()
 
-    val user = gs.fromJson(obj, User::class.java)
-
-    return user
+    return gs.fromJson(obj, User::class.java)
 }
 
 //Converte un JSON a un oggetto di tipo Login
-fun LoginFromJSON (obj : JsonObject): Login
+private fun loginFromJSON (obj : JsonObject): Login
 {
     val gs = Gson()
 
@@ -37,56 +46,89 @@ fun LoginFromJSON (obj : JsonObject): Login
     return login
 }
 
+private fun placeFromJSON (obj : JsonObject) : Place
+{
+    val gs = Gson()
+
+    return gs.fromJson(obj, Place::class.java)
+}
+
 //Invio della risposta alla richiesta di registrazione
-fun sendResponseReg(res : String, addr: InetAddress)
+private fun sendResponse(res : String, addr: InetAddress)
 {
     val obj = JsonObject()
     obj.addProperty("response", res)
 
     val client = DatagramSocket()
     val ba = obj.toString().toByteArray()
-    //val ad = InetAddress.getByName(addr.toString())
     val dp = DatagramPacket(ba, ba.size, addr, 8890)
     client.send(dp)
     println("Risposta inviata : $res")
 }
 
+private fun sendPlacesList(list : List<Place>, addr: InetAddress)
+{
+    val obj = JsonObject()
+    obj.add("list", parseListToJSON(list))
+
+    val client = DatagramSocket()
+    val ba = obj.toString().toByteArray()
+    val dp = DatagramPacket(ba, ba.size, addr, 8890)
+    client.send(dp)
+}
+
 //Funzione di registrazione di un nuovo utente
-fun register(user: User, addr: InetAddress)
+private fun register(user: User, addr: InetAddress)
 {
     try {
         val mail = InternetAddress(user.mail)
         mail.validate()
     }
     catch (ae: AddressException) {
-        sendResponseReg("No", addr)
+        sendResponse("No", addr)
         return
     }
     println(addr.hostAddress)
     if (MongoReg(user))
-        sendResponseReg("Yes", addr)
+        sendResponse("Yes", addr)
     else
-        sendResponseReg("No", addr)
+        sendResponse("No", addr)
 }
 
 //Funzione di login
-fun login(login: Login, addr: InetAddress)
+private fun login(login: Login, addr: InetAddress)
 {
     println(addr.hostAddress)
     if (MongoLog(login))
-        sendResponseReg("Yes", addr)
+        sendResponse("Yes", addr)
     else
-        sendResponseReg("No", addr)
+        sendResponse("No", addr)
+}
+
+private fun geolocalization(place: Place, addr: InetAddress)
+{
+    sendPlacesList(MongoPos(place.coordinates), addr)
+}
+
+private fun newPlace(place: Place, addr: InetAddress)
+{
+    if (MongoNewPlace(place))
+        sendResponse("Yes", addr)
+    else
+        sendResponse("No", addr)
 }
 
 //Funzione che parte quando viene ricevuto un pacchetto
 fun receive (obj : String, addr: InetAddress)
 {
+    println(obj)
     val jsonobj = parseStringToJSON(obj)
 
     when
     {
-        jsonobj.has("register") -> register(UserFromJSON(jsonobj.getAsJsonObject("register")), addr)
-        jsonobj.has("login") -> login(LoginFromJSON(jsonobj.getAsJsonObject("login")), addr)
+        jsonobj.has("register") -> register(userFromJSON(jsonobj.getAsJsonObject("register")), addr)
+        jsonobj.has("login") -> login(loginFromJSON(jsonobj.getAsJsonObject("login")), addr)
+        jsonobj.has("position") -> geolocalization(placeFromJSON(jsonobj.getAsJsonObject("position")), addr)
+        jsonobj.has("newPlace") -> newPlace(placeFromJSON(jsonobj.getAsJsonObject("newPlace")), addr)
     }
 }
