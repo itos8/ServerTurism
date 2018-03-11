@@ -16,13 +16,24 @@ private fun parseStringToJSON (str: String) : JsonObject
     return element.asJsonObject
 }
 
+private fun parseAnytoJSON(obj:Any): JsonObject
+{
+    val gson = Gson()
+
+    val element = parseStringToJSON(gson.toJson(obj))
+
+    return element
+}
+
 private fun parseListToJSON (list: List<Any>): JsonElement
 {
     var element = JsonArray()
 
+    var gs = Gson()
+
     for (entry in list)
     {
-        element.add(parseStringToJSON(entry.toString()))
+        element.add(gs.toJsonTree(entry,Any::class.java))
     }
 
     return element
@@ -44,6 +55,13 @@ private fun loginFromJSON (obj : JsonObject): Login
     val login = gs.fromJson(obj, Login::class.java)
 
     return login
+}
+
+private fun positionFromJSON(obj: JsonObject): Position
+{
+    val gs = Gson()
+
+    return gs.fromJson(obj, Position::class.java)
 }
 
 private fun placeFromJSON (obj : JsonObject) : Place
@@ -71,6 +89,7 @@ private fun sendPlacesList(list : List<Place>, addr: InetAddress)
     val obj = JsonObject()
     obj.add("list", parseListToJSON(list))
 
+    println(obj.toString())
     val client = DatagramSocket()
     val ba = obj.toString().toByteArray()
     val dp = DatagramPacket(ba, ba.size, addr, 8890)
@@ -105,9 +124,9 @@ private fun login(login: Login, addr: InetAddress)
         sendResponse("No", addr)
 }
 
-private fun geolocalization(place: Place, addr: InetAddress)
+private fun geolocalization(position: Position, addr: InetAddress)
 {
-    sendPlacesList(MongoPos(place.coordinates), addr)
+    sendPlacesList(MongoPos(position.coordinates!!), addr)
 }
 
 private fun newPlace(place: Place, addr: InetAddress)
@@ -121,14 +140,13 @@ private fun newPlace(place: Place, addr: InetAddress)
 //Funzione che parte quando viene ricevuto un pacchetto
 fun receive (obj : String, addr: InetAddress)
 {
-    println(obj)
     val jsonobj = parseStringToJSON(obj)
 
     when
     {
         jsonobj.has("register") -> register(userFromJSON(jsonobj.getAsJsonObject("register")), addr)
         jsonobj.has("login") -> login(loginFromJSON(jsonobj.getAsJsonObject("login")), addr)
-        jsonobj.has("position") -> geolocalization(placeFromJSON(jsonobj.getAsJsonObject("position")), addr)
+        jsonobj.has("position") -> geolocalization(positionFromJSON(jsonobj.getAsJsonObject("position")), addr)
         jsonobj.has("newPlace") -> newPlace(placeFromJSON(jsonobj.getAsJsonObject("newPlace")), addr)
     }
 }

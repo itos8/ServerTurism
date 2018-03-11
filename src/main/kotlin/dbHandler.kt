@@ -1,18 +1,33 @@
 package server
 
+import com.mongodb.MongoClient
 import com.mongodb.client.model.geojson.Point
-import org.litote.kmongo.*
+import com.mongodb.client.model.Filters.eq
+import com.mongodb.client.model.Filters.geoWithin
+import org.bson.codecs.pojo.PojoCodecProvider
 
-private  val mon = KMongo.createClient("localhost",27017)
+import com.mongodb.client.model.geojson.Polygon
+import org.bson.codecs.configuration.CodecRegistries.fromProviders
+import org.bson.codecs.configuration.CodecRegistries.fromRegistries
+
+private  val mon = MongoClient("localhost",27017)
 private val db = mon.getDatabase("Cicero")
-private val col = db.getCollection<User>("Users")
-private val places = db.getCollection<Place>("Places")
+private var col = db.getCollection("Users", User::class.java)
+private var places = db.getCollection("Places", Place::class.java)
+private val codec = fromRegistries(MongoClient.getDefaultCodecRegistry(),
+                    fromProviders(PojoCodecProvider.builder().automatic(true).build()))
+
+fun MongoCodec()
+{
+    col = col.withCodecRegistry(codec)
+    places = places.withCodecRegistry(codec)
+}
 
 //Registrazione di un nuovo utente
 fun MongoReg(user: User): Boolean
 {
     try {
-        if (col.findOneById(user.mail) != null) {
+        if (col.find(eq("mail", user.mail)).count() > 0) {
             return false
         }
         else
@@ -29,7 +44,7 @@ fun MongoReg(user: User): Boolean
 fun MongoLog(login: Login) : Boolean
 {
     try {
-        val log = col.findOneById(login.mail)
+        val log = col.find(eq("mail", login.mail)).first()
         if ( log != null )
         {
             return log.pass == login.pass
@@ -49,10 +64,7 @@ fun MongoPos(point: Point): List<Place>
 
     try {
 
-        list.addAll(places.find("${MongoOperator.geoIntersects}:\n" +
-                "                     {${MongoOperator.geometry}:{ \"type\" : \"Point\",\n" +
-                "                          \"coordinates\" : ${point.coordinates} }\n" +
-                "                      }"))
+        list.addAll(places.find())
 
         return list
     }
@@ -62,10 +74,16 @@ fun MongoPos(point: Point): List<Place>
     }
 }
 
+/*places.find("{area:\n" +
+        "                       {${MongoOperator.geoIntersects}:\n" +
+                "                       {${MongoOperator.geometry}:{ \"type\" : \"Point\",\n" +
+                "                          \"coordinates\" : ${point.coordinates.values} }\n" +
+                "                      }\n}\n}")*/
+
 fun MongoNewPlace (place: Place) : Boolean
 {
     try {
-        if (places.findOneById(place.coordinates) != null) {
+        if (places.find(eq("coordinates", place.coordinates)).count() > 0) {
             return false
         }
         else
@@ -73,7 +91,7 @@ fun MongoNewPlace (place: Place) : Boolean
             places.insertOne(place)
             return true
         }
-    } catch (iae: IllegalArgumentException){
+    } catch (iae: Exception){
         return false
     }
 }

@@ -1,13 +1,107 @@
+/*package server
+
+import com.mongodb.client.model.geojson.*
+*/
+
 package server
 
+import com.google.gson.annotations.Expose
+import com.google.gson.annotations.SerializedName
 import com.mongodb.client.model.geojson.Point
 import com.mongodb.client.model.geojson.Polygon
-import org.bson.codecs.pojo.annotations.BsonId
 
-data class Login (val mail: String,val pass: String)
+class Login {
+    @SerializedName("mail")
+    @Expose
+    var mail: String? = null
 
-data class User(@BsonId val mail:String, val nome: String, val pass: String)
+    @SerializedName("pass")
+    @Expose
+    var pass: String? = null
 
-data class Place(@BsonId val coordinates: Point, val name: String, val description: String, val area: Polygon)
+    constructor() {}
 
-//{coordinates=[20,20] name="Il gusto" description="suca" area=[[10,10],[20,10],[20,20],[10,20],[10,10]]
+    constructor(mail: String, pass: String) : super()
+    {
+        this.mail = mail
+        this.pass = pass
+    }
+}
+
+class Place //(val coordinates: Point, val name: String, val description: String, val area: Polygon)
+{
+    @SerializedName("coordinates")
+    @Expose
+    var coordinates: Point? = null
+
+    @SerializedName("name")
+    @Expose
+    var name: String? = null
+
+    @SerializedName("description")
+    @Expose
+    var description: String? = null
+
+    @SerializedName("area")
+    @Expose
+    var area: Polygon? = null
+
+    constructor() {}
+
+    constructor(coordinates: Point, name: String, description: String, area: Polygon)
+    {
+        this.coordinates = coordinates
+        this.name = name
+        this.description = description
+        this.area = area
+    }
+}
+
+class Position //(val coordinates: Point)
+{
+    @SerializedName("coordinates")
+    @Expose
+    var coordinates: Point? = null
+
+    constructor(){}
+
+    constructor(coordinates: Point)
+    {
+        this.coordinates = coordinates
+    }
+}
+//{"newPlace":{"coordinates":{"coordinate":{"values":[15.0,15.0]}},"name":"Il gusto","description":"suca","area":{"coordinates":{"exterior":[{"values":[10.0,10.0]},{"values":[10.0,20.0]},{"values":[20.0,20.0]},{"values":[20.0,10.0]},{"values":[10.0,10.0]}],"holes":[]}}}}
+
+
+class User {
+
+    @SerializedName("mail")
+    @Expose
+    var mail: String? = null
+    @SerializedName("name")
+    @Expose
+    var name: String? = null
+    @SerializedName("pass")
+    @Expose
+    var pass: String? = null
+
+    /**
+     * No args constructor for use in serialization
+     *
+     */
+    constructor() {}
+
+    /**
+     *
+     * @param mail
+     * @param name
+     * @param pass
+     */
+    constructor(mail: String, name: String, pass: String) : super() {
+        this.mail = mail
+        this.name = name
+        this.pass = pass
+    }
+
+}
+

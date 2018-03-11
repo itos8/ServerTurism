@@ -10,6 +10,8 @@ fun main(args : Array<String>)
 
     var receiveData = ByteArray(1024)
 
+    MongoCodec()
+
     while (true)
     {
         val packet = DatagramPacket(receiveData, receiveData.size)
