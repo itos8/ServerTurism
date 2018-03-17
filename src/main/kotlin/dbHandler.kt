@@ -82,7 +82,7 @@ fun mongoPos(point: Point): List<Place>
 fun mongoNewPlace (place: Place) : Boolean
 {
     try {
-        if (places.find(eq("coordinates", place.coordinates)).count() > 0) {
+        if (places.find(and(eq("coordinates", place.coordinates), eq("name", place.name))).count() > 0) {
             return false
         }
         else
