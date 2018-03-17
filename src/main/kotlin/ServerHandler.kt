@@ -108,7 +108,7 @@ private fun register(user: User, addr: InetAddress)
         return
     }
     println(addr.hostAddress)
-    if (MongoReg(user))
+    if (mongoReg(user))
         sendResponse("Yes", addr)
     else
         sendResponse("No", addr)
@@ -118,7 +118,7 @@ private fun register(user: User, addr: InetAddress)
 private fun login(login: Login, addr: InetAddress)
 {
     println(addr.hostAddress)
-    if (MongoLog(login))
+    if (mongoLog(login))
         sendResponse("Yes", addr)
     else
         sendResponse("No", addr)
@@ -126,12 +126,12 @@ private fun login(login: Login, addr: InetAddress)
 
 private fun geolocalization(position: Position, addr: InetAddress)
 {
-    sendPlacesList(MongoPos(position.coordinates!!), addr)
+    sendPlacesList(mongoPos(position.coordinates!!), addr)
 }
 
 private fun newPlace(place: Place, addr: InetAddress)
 {
-    if (MongoNewPlace(place))
+    if (mongoNewPlace(place))
         sendResponse("Yes", addr)
     else
         sendResponse("No", addr)

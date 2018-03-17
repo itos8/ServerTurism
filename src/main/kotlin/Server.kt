@@ -10,7 +10,7 @@ fun main(args : Array<String>)
 
     var receiveData = ByteArray(1024)
 
-    MongoCodec()
+    mongoCodec()
 
     while (true)
     {

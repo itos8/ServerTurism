@@ -1,12 +1,11 @@
 package server
 
 import com.mongodb.MongoClient
+import com.mongodb.client.model.Filters.*
+import com.mongodb.client.model.geojson.Geometry
 import com.mongodb.client.model.geojson.Point
-import com.mongodb.client.model.Filters.eq
-import com.mongodb.client.model.Filters.geoWithin
 import org.bson.codecs.pojo.PojoCodecProvider
 
-import com.mongodb.client.model.geojson.Polygon
 import org.bson.codecs.configuration.CodecRegistries.fromProviders
 import org.bson.codecs.configuration.CodecRegistries.fromRegistries
 
@@ -17,14 +16,14 @@ private var places = db.getCollection("Places", Place::class.java)
 private val codec = fromRegistries(MongoClient.getDefaultCodecRegistry(),
                     fromProviders(PojoCodecProvider.builder().automatic(true).build()))
 
-fun MongoCodec()
+fun mongoCodec()
 {
     col = col.withCodecRegistry(codec)
     places = places.withCodecRegistry(codec)
 }
 
 //Registrazione di un nuovo utente
-fun MongoReg(user: User): Boolean
+fun mongoReg(user: User): Boolean
 {
     try {
         if (col.find(eq("mail", user.mail)).count() > 0) {
@@ -41,7 +40,7 @@ fun MongoReg(user: User): Boolean
 }
 
 //Login di un utente registrato
-fun MongoLog(login: Login) : Boolean
+fun mongoLog(login: Login) : Boolean
 {
     try {
         val log = col.find(eq("mail", login.mail)).first()
@@ -58,13 +57,13 @@ fun MongoLog(login: Login) : Boolean
     }
 }
 
-fun MongoPos(point: Point): List<Place>
+fun mongoPos(point: Point): List<Place>
 {
     var list = mutableListOf<Place>()
 
     try {
 
-        list.addAll(places.find())
+        list.addAll(places.find(geoIntersects("area", point)))
 
         return list
     }
@@ -80,7 +79,7 @@ fun MongoPos(point: Point): List<Place>
                 "                          \"coordinates\" : ${point.coordinates.values} }\n" +
                 "                      }\n}\n}")*/
 
-fun MongoNewPlace (place: Place) : Boolean
+fun mongoNewPlace (place: Place) : Boolean
 {
     try {
         if (places.find(eq("coordinates", place.coordinates)).count() > 0) {
