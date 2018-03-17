@@ -1,6 +1,7 @@
 package server
 
 import com.google.gson.*
+import com.mongodb.client.model.geojson.Point
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
@@ -14,15 +15,6 @@ private fun parseStringToJSON (str: String) : JsonObject
     val element = gson.fromJson(str, JsonElement::class.java)
 
     return element.asJsonObject
-}
-
-private fun parseAnytoJSON(obj:Any): JsonObject
-{
-    val gson = Gson()
-
-    val element = parseStringToJSON(gson.toJson(obj))
-
-    return element
 }
 
 private fun parseListToJSON (list: List<Any>): JsonElement
@@ -57,11 +49,12 @@ private fun loginFromJSON (obj : JsonObject): Login
     return login
 }
 
-private fun positionFromJSON(obj: JsonObject): Position
+private fun positionFromJSON(obj: JsonObject): Coordinates
 {
+    println(obj.toString())
     val gs = Gson()
 
-    return gs.fromJson(obj, Position::class.java)
+    return gs.fromJson(obj, Coordinates::class.java)
 }
 
 private fun placeFromJSON (obj : JsonObject) : Place
@@ -87,7 +80,14 @@ private fun sendResponse(res : String, addr: InetAddress)
 private fun sendPlacesList(list : List<Place>, addr: InetAddress)
 {
     val obj = JsonObject()
-    obj.add("list", parseListToJSON(list))
+    var places = mutableListOf<PointOfInterest>()
+
+    for(place : Place in list)
+    {
+        val coordinates = Coordinates(place.coordinates!!.coordinates.values[0], place.coordinates!!.coordinates.values[1])
+        places.add(PointOfInterest(coordinates, place.name!!, place.description!!))
+    }
+    obj.add("list", parseListToJSON(places))
 
     println(obj.toString())
     val client = DatagramSocket()
@@ -124,9 +124,12 @@ private fun login(login: Login, addr: InetAddress)
         sendResponse("No", addr)
 }
 
-private fun geolocalization(position: Position, addr: InetAddress)
+private fun geolocalization(coordinates: Coordinates, addr: InetAddress)
 {
-    sendPlacesList(mongoPos(position.coordinates!!), addr)
+    println("["+coordinates.lat+","+coordinates.lon+"]")
+    var point = Point(com.mongodb.client.model.geojson.Position(coordinates.lat, coordinates.lon))
+
+    sendPlacesList(mongoPos(point), addr)
 }
 
 private fun newPlace(place: Place, addr: InetAddress)

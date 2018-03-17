@@ -2,7 +2,6 @@ package server
 
 import com.mongodb.MongoClient
 import com.mongodb.client.model.Filters.*
-import com.mongodb.client.model.geojson.Geometry
 import com.mongodb.client.model.geojson.Point
 import org.bson.codecs.pojo.PojoCodecProvider
 
@@ -72,12 +71,6 @@ fun mongoPos(point: Point): List<Place>
         return listOf()
     }
 }
-
-/*places.find("{area:\n" +
-        "                       {${MongoOperator.geoIntersects}:\n" +
-                "                       {${MongoOperator.geometry}:{ \"type\" : \"Point\",\n" +
-                "                          \"coordinates\" : ${point.coordinates.values} }\n" +
-                "                      }\n}\n}")*/
 
 fun mongoNewPlace (place: Place) : Boolean
 {

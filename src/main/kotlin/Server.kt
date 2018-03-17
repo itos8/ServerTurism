@@ -19,7 +19,6 @@ fun main(args : Array<String>)
         listener.receive(packet)
 
         println("Connessione stabilita")
-        //val data = receiveData.toString(Charsets.UTF_8)
         val data = String(receiveData, packet.offset, packet.length, Charset.defaultCharset())
 
         Thread({

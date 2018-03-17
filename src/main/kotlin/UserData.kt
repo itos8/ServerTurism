@@ -10,6 +10,9 @@ import com.google.gson.annotations.SerializedName
 import com.mongodb.client.model.geojson.Point
 import com.mongodb.client.model.geojson.Polygon
 
+data class PointOfInterest(val coordinates: Coordinates, val name: String, val description: String)
+data class Coordinates(val lat: Double, val lon: Double)
+
 class Login {
     @SerializedName("mail")
     @Expose
